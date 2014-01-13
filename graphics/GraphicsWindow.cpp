@@ -24,6 +24,54 @@ void GraphicsWindow::static_keyboard(unsigned char key, int x, int y)
     _window->_keyboard(key, x, y);
 }
 
+GraphicsCamera::MouseMode GraphicsWindow::mouseToCamera(int button)
+{
+    switch(button) {
+        case GLUT_LEFT_BUTTON: {
+            int modifierKey = glutGetModifiers();
+            switch(modifierKey) {
+                case GLUT_ACTIVE_SHIFT: {
+                    return GraphicsCamera::MOUSE_PAN;
+                }
+                case GLUT_ACTIVE_CTRL: {
+                    return GraphicsCamera::MOUSE_ROTATE;
+                }
+                case GLUT_ACTIVE_ALT: {
+                    return GraphicsCamera::MOUSE_ZOOM;
+                }
+            }
+        }
+        case GLUT_MIDDLE_BUTTON: {
+            return GraphicsCamera::MOUSE_ZOOM;
+        }
+        case GLUT_RIGHT_BUTTON: {
+            return GraphicsCamera::MOUSE_PAN;
+        }
+        default:
+            return GraphicsCamera::MOUSE_NONE;
+    }
+}
+
+void GraphicsWindow::_mouse(int button, int state, int x, int y)
+{
+    if(GLUT_DOWN == state) {
+        mouseMode = mouseToCamera(button);
+//        camera.mousePressed(x, y, mouseMode);
+    }
+    else {
+        mouseMode = GraphicsCamera::MOUSE_NONE;
+    }
+
+
+}
+
+void GraphicsWindow::_motion(int x, int y)
+{
+    if(GraphicsCamera::MOUSE_NONE != mouseMode) {
+//        camera.mouseMoved(int x, int y, mouseMode);
+    }
+}
+
 void GraphicsWindow::Resize(int new_width, int new_height)
 {
     _window->_current_width = new_width;
@@ -126,6 +174,8 @@ void GraphicsWindow::_Initialize(int argc, char *argv[], std::string name, int i
     glutDisplayFunc(akin::GraphicsWindow::Render);
     glutCloseFunc(akin::GraphicsBuffer::Cleanup);
     glutKeyboardFunc(akin::GraphicsWindow::static_keyboard);
+
+    mouseMode = GraphicsCamera::MOUSE_NONE;
 
     CheckGLError(verb, "Checking errors before initializing GLEW");
 

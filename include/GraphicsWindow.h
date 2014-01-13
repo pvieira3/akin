@@ -4,6 +4,7 @@
 #include "IncludeGL.h"
 
 #include "GraphicsBuffer.h"
+#include "GraphicsCamera.h"
 
 namespace akin {
 
@@ -34,6 +35,15 @@ public:
 protected:
 
     virtual void _keyboard(unsigned char key, int x, int y);
+    virtual void _mouse(int button, int state, int x, int y);
+    virtual void _motion(int x, int y);
+    /**
+     * \brief Converts a mouse click to a camera motion mode.
+     * This includes pressing Shift, Ctrl or Alt key while pressing
+     * the left mouse button.
+     */
+    GraphicsCamera::MouseMode mouseToCamera(int button);
+    GraphicsCamera::MouseMode mouseMode;
     
     void _Initialize(int argc, char* argv[], std::string name, int init_width, int init_height);
     
