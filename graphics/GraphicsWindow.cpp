@@ -75,8 +75,11 @@ GraphicsCamera::MouseMode GraphicsWindow::mouseToCamera(int button)
                 case GLUT_ACTIVE_CTRL: {
                     return GraphicsCamera::MOUSE_ROTATE;
                 }
-                case GLUT_ACTIVE_ALT: {
+                case GLUT_ACTIVE_ALT: { // Gets overriden by Ubuntu move window function
                     return GraphicsCamera::MOUSE_ZOOM;
+                }
+                default: {
+                    return GraphicsCamera::MOUSE_ROTATE;
                 }
             }
         }
@@ -88,6 +91,12 @@ GraphicsCamera::MouseMode GraphicsWindow::mouseToCamera(int button)
         case GLUT_RIGHT_BUTTON: {
             return GraphicsCamera::MOUSE_PAN;
         }
+        case 3: {
+            return GraphicsCamera::MOUSE_SCROLL_UP;
+        }
+        case 4: {
+            return GraphicsCamera::MOUSE_SCROLL_DOWN;
+        }
         default:
             return GraphicsCamera::MOUSE_NONE;
     }
@@ -96,19 +105,29 @@ GraphicsCamera::MouseMode GraphicsWindow::mouseToCamera(int button)
 void GraphicsWindow::_mouse(int button, int state, int x, int y)
 {
     if(GLUT_DOWN == state) {
-        mouseMode = mouseToCamera(button);
-//        camera.mouseMoved(x, y, mouseMode);
+        _mouseMode = mouseToCamera(button);
+        camera.mousePressed(x, y, _mouseMode);
     }
     else {
-        mouseMode = GraphicsCamera::MOUSE_NONE;
+        _mouseMode = GraphicsCamera::MOUSE_NONE;
     }
 }
 
 void GraphicsWindow::_motion(int x, int y)
 {
-    if(GraphicsCamera::MOUSE_NONE != mouseMode) {
-//        camera.mouseMoved(int x, int y, mouseMode);
+    if(GraphicsCamera::MOUSE_NONE != _mouseMode) {
+        camera.mouseMoved(x, y, _mouseMode);
     }
+}
+
+void GraphicsWindow::static_mouse(int button, int state, int x, int y)
+{
+    _window->_mouse(button, state, x, y);
+}
+
+void GraphicsWindow::static_motion(int x, int y)
+{
+    _window->_motion(x, y);
 }
 
 void GraphicsWindow::Resize(int new_width, int new_height)
@@ -214,8 +233,10 @@ void GraphicsWindow::_Initialize(int argc, char *argv[], std::string name, int i
     glutDisplayFunc(akin::GraphicsWindow::Render);
     glutCloseFunc(akin::GraphicsBuffer::Cleanup);
     glutKeyboardFunc(akin::GraphicsWindow::static_keyboard);
+    glutMouseFunc(akin::GraphicsWindow::static_mouse);
+    glutMotionFunc(akin::GraphicsWindow::static_motion);
 
-    mouseMode = GraphicsCamera::MOUSE_NONE;
+    _mouseMode = GraphicsCamera::MOUSE_NONE;
 
     CheckGLError(verb, "Checking errors before initializing GLEW");
 

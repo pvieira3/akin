@@ -96,6 +96,7 @@ void GraphicsCamera::zoom(float factor)
     _modelview.pretranslate(Eigen::Vector3f(0, 0, factor));
     loadMatrix(MATRIX_MODELVIEW);
     glutPostRedisplay();
+
 }
 
 void GraphicsCamera::setCameraType(CameraType cameraType)

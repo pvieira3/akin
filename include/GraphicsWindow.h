@@ -29,6 +29,8 @@ public:
     static std::string get_window_name();
     static void static_keyboard(unsigned char key, int x, int y);
     static void simple_move_camera(float x, float dy, float dz);
+    static void static_mouse(int button, int state, int x, int y);
+    static void static_motion(int x, int y);
     
     
     verbosity verb;
@@ -43,8 +45,9 @@ protected:
      * This includes pressing Shift, Ctrl or Alt key while pressing
      * the left mouse button.
      */
+    GraphicsCamera camera;
     GraphicsCamera::MouseMode mouseToCamera(int button);
-    GraphicsCamera::MouseMode mouseMode;
+    GraphicsCamera::MouseMode _mouseMode;
     
     void _Initialize(int argc, char* argv[], std::string name, int init_width, int init_height);
     
