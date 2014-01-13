@@ -33,6 +33,19 @@ public:
         MOUSE_SCROLL_DOWN
     };
 
+    static inline std::string mouseModeStr(GraphicsCamera::MouseMode mouseMode)
+    {
+        switch(mouseMode) {
+            case MOUSE_NONE:        return "MOUSE_NONE";
+            case MOUSE_PAN:         return "MOUSE_PAN";
+            case MOUSE_ZOOM:        return "MOUSE_ZOOM";
+            case MOUSE_ROTATE:      return "MOUSE_ROTATE";
+            case MOUSE_SCROLL_UP:   return "MOUSE_SCROLL_UP";
+            case MOUSE_SCROLL_DOWN: return "MOUSE_SCROLL_DOWN";
+            default:
+                return "Error: Invalid mouse mode!";
+        }
+    }
 
     /**
      * \brief Constructor for camera class
@@ -56,7 +69,7 @@ public:
     void rotate(const Eigen::Quaternionf& quat);
     void rotate(int x, int y);
     void rotate(float x, float y, float z);
-    void pan(float x, float y, float z);
+    void pan(float x, float y, float scale=0.01);
     void pan(const Eigen::Vector3f& p);
     void zoom(float factor);
     void setCameraType(CameraType cameraType);
@@ -65,12 +78,16 @@ public:
     void setPose();
     void setPose(const Eigen::Vector3f& position, const Eigen::Vector3f& target, const Eigen::Vector3f& up);
 
-    //==================================================
-    void mousePressed(int x, int y, int button);
-    void mouseReleased(int x, int y, int button);
-    void setMousePosition(const Eigen::Vector2f &position);
-    void updateView();
+    //========== Mouse Functions ==================
+    void mousePressed(int x, int y, GraphicsCamera::MouseMode mouseMode);
+    void mouseReleased(int x, int y, GraphicsCamera::MouseMode mouseMode);
+    void mouseMoved(int x, int y, GraphicsCamera::MouseMode mouseMode);
+    void mouseReset();
     Eigen::Vector3f hemisphereCoords(int x, int y) const;
+    void setMousePosition(const Eigen::Vector2f &position);
+
+
+    void updateView();
 
 
 private:
@@ -88,6 +105,7 @@ private:
 
     Viewport _viewport;
     CameraType _cameraType;
+    MouseMode _mouseMode;
     Eigen::Vector2f _mouseXY;
 
     float _minSize, _maxSize;

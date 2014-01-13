@@ -1,6 +1,7 @@
 #include "GraphicsCamera.h"
 #include "glutils.h"
 #include <iostream>
+#include <math.h>
 
 GraphicsCamera::GraphicsCamera()
 {
@@ -11,21 +12,21 @@ void GraphicsCamera::rotate(int x, int y)
 {
     Eigen::Vector3f cur, origin;
 
-    std::cerr << "\n\n"
-              << "xy: " << x << ", " << y
-              << "mouse: " << _mouseXY.x() << ", " << _mouseXY.y() << "\n\n";
+//    std::cerr << "\n\n"
+//              << "xy: " << x << ", " << y
+//              << "mouse: " << _mouseXY.x() << ", " << _mouseXY.y() << "\n\n";
 
     cur = hemisphereCoords(x,y);
     origin = hemisphereCoords(_mouseXY.x(), _mouseXY.y());
 
-    std::cerr << "x, y = " << x << ", " << y << "\n"
-              << "cur = " << cur.transpose() << "\n"
-              << "ori = " << origin.transpose() << "\n";
+//    std::cerr << "x, y = " << x << ", " << y << "\n"
+//              << "cur = " << cur.transpose() << "\n"
+//              << "ori = " << origin.transpose() << "\n";
 
     Eigen::Quaternionf quat;
 //    Eigen::Vector3f axis;
 //    float angle;
-//    axis = origin.cross(cur);
+//    axis = (origin.cross(cur)).normalized();
 
 //    angle = axis.norm() / (origin.norm() * cur.norm());
     quat.setFromTwoVectors(origin, cur);
@@ -78,14 +79,13 @@ void GraphicsCamera::rotate(float x, float y, float z)
     updateView();
 }
 
-void GraphicsCamera::pan(float x, float y, float z)
+void GraphicsCamera::pan(float x, float y, float scale)
 {
-    pan(Eigen::Vector3f(x,y,z));
+    pan(Eigen::Vector3f(scale*x,scale*y,0));
 }
 
 void GraphicsCamera::pan(const Eigen::Vector3f& p)
 {
-    std::cerr << "Panning by: " << p.transpose() << std::endl;
     _modelview.pretranslate(p);
     loadMatrix(MATRIX_MODELVIEW);
     glutPostRedisplay();
@@ -96,12 +96,6 @@ void GraphicsCamera::zoom(float factor)
     _modelview.pretranslate(Eigen::Vector3f(0, 0, factor));
     loadMatrix(MATRIX_MODELVIEW);
     glutPostRedisplay();
-
-   // setPose(_pose);
-//    _position.z() += factor;
-//    updateView();
-//    glTranslatef(0, 0, factor);
-//    glutPostRedisplay();
 }
 
 void GraphicsCamera::setCameraType(CameraType cameraType)
@@ -140,7 +134,7 @@ void GraphicsCamera::setPose(const Eigen::Vector3f& position, const Eigen::Vecto
     rot.col(1) = yVec.normalized();
     rot.col(2) = zVec.normalized();
     _modelview.rotate(rot);
-    std::cerr << "_modelview:\n" << _modelview.matrix() << std::endl;
+//    std::cerr << "_modelview:\n" << _modelview.matrix() << std::endl;
 }
 
 void GraphicsCamera::setPose()
@@ -148,9 +142,78 @@ void GraphicsCamera::setPose()
     GLfloat m[16];
     glGetFloatv(GL_MODELVIEW_MATRIX, m);
     _modelview = glutils::glToMat4(m);
-    std::cerr << "_modelview:\n" << _modelview.matrix() << std::endl;
-    std::cerr << "_modelviewInv:\n" << _modelview.inverse().matrix() << std::endl;
+//    std::cerr << "_modelview:\n" << _modelview.matrix() << std::endl;
+//    std::cerr << "_modelviewInv:\n" << _modelview.inverse().matrix() << std::endl;
 }
+
+//--------------------------
+//    MOUSE FUNCTIONS
+//--------------------------
+
+void GraphicsCamera::mousePressed(int x, int y, GraphicsCamera::MouseMode mouseMode)
+{
+    std::cerr << "Mouse: " << mouseModeStr(mouseMode) << "\n";
+
+    _mouseMode = mouseMode;
+    _mouseXY << x, y;
+
+    switch(mouseMode) {
+        case MOUSE_SCROLL_UP: {
+            zoom(1);
+            break;
+        }
+        case MOUSE_SCROLL_DOWN: {
+            zoom(-1);
+            break;
+        }
+        default: break;
+    }
+}
+
+
+void GraphicsCamera::mouseReleased(int x, int y, GraphicsCamera::MouseMode mouseMode)
+{
+    _mouseMode = MOUSE_NONE;
+}
+
+void GraphicsCamera::mouseMoved(int x, int y, GraphicsCamera::MouseMode mouseMode)
+{
+    // How did the mouse move?
+    int dx = x - _mouseXY.x();
+    int dy = y - _mouseXY.y();
+
+    // Move camera based on mouse mode and mouse motion
+    switch(mouseMode) {
+        case MOUSE_PAN: {
+            pan(dx, -dy);
+            break;
+        }
+        case MOUSE_ZOOM: {
+            zoom(dy);
+            break;
+        }
+        case MOUSE_ROTATE: {
+            rotate(x, y); // Virtual Trackball
+            break;
+        }
+        case MOUSE_SCROLL_UP: {
+            zoom(1);
+            break;
+        }
+        case MOUSE_SCROLL_DOWN: {
+            zoom(-1);
+            break;
+        }
+    }
+
+    _mouseXY << x, y;
+}
+
+void GraphicsCamera::mouseReset()
+{
+    _mouseMode = MOUSE_NONE;
+}
+
 
 
 //--------------------------
@@ -175,8 +238,6 @@ void GraphicsCamera::setMousePosition(const Eigen::Vector2f& position)
 
 Eigen::Vector3f GraphicsCamera::hemisphereCoords(int x, int y) const
 {
-//    std::cerr << "hemicoords input: " << x << ", " << y << std::endl;
-
     Eigen::Vector3f ray; // Ray in hemisphere going from world origin
 
     // Compute ray components by first getting radius of hemishpere which
@@ -184,7 +245,7 @@ Eigen::Vector3f GraphicsCamera::hemisphereCoords(int x, int y) const
     float r = _viewport.diagonal/2;
     ray.x() = x - _viewport.center.x();
     ray.y() = _viewport.center.y() - y;
-    ray.z() = sqrt(r*r - ray.x()*ray.x() - ray.y()*ray.y());
+    ray.z() = std::max(0.0, sqrt(r*r - ray.x()*ray.x() - ray.y()*ray.y()));
 
     return ray;
 }
@@ -194,8 +255,8 @@ void GraphicsCamera::loadMatrix(MatrixType matrix_type)
     GLfloat glMat[16];
     glutils::iso3ToGl(getMatrix(matrix_type), glMat);
     glutils::loadMatrix(glMat);
-    std::cerr << "modelview\n" << _modelview.matrix() << std::endl;
-    std::cerr << "modelviewInv\n" << _modelview.inverse().matrix() << "\n\n";
+//    std::cerr << "modelview\n" << _modelview.matrix() << std::endl;
+//    std::cerr << "modelviewInv\n" << _modelview.inverse().matrix() << "\n\n";
 }
 
 const Eigen::Isometry3f& GraphicsCamera::getMatrix(MatrixType matrix_type)

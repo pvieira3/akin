@@ -27,6 +27,7 @@ void GraphicsWindow::static_keyboard(unsigned char key, int x, int y)
 GraphicsCamera::MouseMode GraphicsWindow::mouseToCamera(int button)
 {
     switch(button) {
+        // Handle left mouse button and modifier keys
         case GLUT_LEFT_BUTTON: {
             int modifierKey = glutGetModifiers();
             switch(modifierKey) {
@@ -41,9 +42,11 @@ GraphicsCamera::MouseMode GraphicsWindow::mouseToCamera(int button)
                 }
             }
         }
+        // Handle middle mouse button
         case GLUT_MIDDLE_BUTTON: {
             return GraphicsCamera::MOUSE_ZOOM;
         }
+        // Handle right mouse button
         case GLUT_RIGHT_BUTTON: {
             return GraphicsCamera::MOUSE_PAN;
         }
@@ -56,13 +59,11 @@ void GraphicsWindow::_mouse(int button, int state, int x, int y)
 {
     if(GLUT_DOWN == state) {
         mouseMode = mouseToCamera(button);
-//        camera.mousePressed(x, y, mouseMode);
+//        camera.mouseMoved(x, y, mouseMode);
     }
     else {
         mouseMode = GraphicsCamera::MOUSE_NONE;
     }
-
-
 }
 
 void GraphicsWindow::_motion(int x, int y)
@@ -196,9 +197,9 @@ void GraphicsWindow::_Initialize(int argc, char *argv[], std::string name, int i
     glDepthFunc(GL_LESS);
     CheckGLError(verb, "Could not set OpenGL depth testing options");
 
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
+//    glEnable(GL_CULL_FACE);
+//    glCullFace(GL_BACK);
+//    glFrontFace(GL_CCW);
     CheckGLError(verb, "Could not set OpenGL culling options");
 
 
