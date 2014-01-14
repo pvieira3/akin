@@ -29,8 +29,8 @@ public:
       * \brief Constructor for frames
       * 
       */
-    Frame(Frame& referenceFrame,
-          std::string frameName,
+    Frame(Frame& referenceFrame = World(),
+          std::string frameName = "aribtrary_frame",
           verbosity::verbosity_level_t report_level = verbosity::INHERIT);
     
     Frame(const Transform& relativeTf,

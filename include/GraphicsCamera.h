@@ -9,10 +9,20 @@
 #include <GL/glu.h>
 #include <GL/glut.h>
 
+#include "IncludeGL.h"
+#include "AkinIncludes.h"
+
+namespace akin {
 
 class GraphicsCamera
 {
 public:
+
+
+    /**
+     * \brief Constructor for camera class
+     */
+    GraphicsCamera(verbosity::verbosity_level_t report_level = verbosity::LOG);
 
     enum CameraType {
         CAMERA_ORTHONORMAL,
@@ -47,11 +57,7 @@ public:
         }
     }
 
-    /**
-     * \brief Constructor for camera class
-     */
-    GraphicsCamera();
-
+    Frame frame;
     Eigen::Isometry3f _modelview, _modelviewInv;
     Eigen::Matrix4f _projection, _projectionInv;
     Eigen::Vector3f _position, _target, _up;
@@ -63,34 +69,36 @@ public:
      * vectors and axis to rotate about and convert to
      * quaternion.
      */
-    void rotateAboutWorld(const Eigen::Quaternionf& quat);
-    void rotateAboutPoint(const Eigen::Vector3f& frame, const Eigen::Quaternionf& quat);
-    void rotateAboutFrame(Eigen::Isometry3f& frame, const Eigen::Quaternionf& quat);
-    void rotate(const Eigen::Quaternionf& quat);
-    void rotate(int x, int y);
-    void rotate(float x, float y, float z);
-    void pan(float x, float y, float scale=0.01);
-    void pan(const Eigen::Vector3f& p);
-    void zoom(float factor);
-    void setCameraType(CameraType cameraType);
-    void setViewport(int x, int y, int w, int h);
-    void setPose(const Eigen::Isometry3f &pose);
-    void setPose();
-    void setPose(const Eigen::Vector3f& position, const Eigen::Vector3f& target, const Eigen::Vector3f& up);
+    static void rotateAboutWorld(const Eigen::Quaternionf& quat);
+    static void rotateAboutPoint(const Eigen::Vector3f& frame, const Eigen::Quaternionf& quat);
+    static void rotateAboutFrame(Eigen::Isometry3f& frame, const Eigen::Quaternionf& quat);
+    static void rotate(const Eigen::Quaternionf& quat);
+    static void rotate(int x, int y);
+    static void rotate(float x, float y, float z);
+    static void pan(float x, float y, float scale=0.01);
+    static void pan(const Eigen::Vector3f& p);
+    static void zoom(float factor);
+    static void setCameraType(CameraType cameraType);
+    static void setViewport(int x, int y, int w, int h);
+    static void setPose(const Eigen::Isometry3f &pose);
+    static void setPose();
+    static void setPose(const Eigen::Vector3f& position, const Eigen::Vector3f& target, const Eigen::Vector3f& up);
 
     //========== Mouse Functions ==================
-    void mousePressed(int x, int y, GraphicsCamera::MouseMode mouseMode);
-    void mouseReleased(int x, int y, GraphicsCamera::MouseMode mouseMode);
-    void mouseMoved(int x, int y, GraphicsCamera::MouseMode mouseMode);
-    void mouseReset();
-    Eigen::Vector3f hemisphereCoords(int x, int y) const;
-    void setMousePosition(const Eigen::Vector2f &position);
+    static void mousePressed(int x, int y, GraphicsCamera::MouseMode mouseMode);
+    static void mouseReleased(int x, int y, GraphicsCamera::MouseMode mouseMode);
+    static void mouseMoved(int x, int y, GraphicsCamera::MouseMode mouseMode);
+    static void mouseReset();
+    static Eigen::Vector3f hemisphereCoords(int x, int y);
+    static void setMousePosition(const Eigen::Vector2f &position);
 
 
-    void updateView();
+    static void updateView();
+
+    verbosity verb;
 
 
-private:
+protected:
 
     class Viewport
     {
@@ -113,11 +121,21 @@ private:
     float _minYRot, _maxYRot;
 
 
-    const Eigen::Isometry3f& getMatrix(MatrixType matrix_type);
-    void loadMatrix(MatrixType matrix_type);
-    const Eigen::Matrix4f& projection() const { return _projection; }
-    const Eigen::Isometry3f& modelview() const { return _modelview; }
+    static const Eigen::Isometry3f& getMatrix(MatrixType matrix_type);
+    static void loadMatrix(MatrixType matrix_type);
+    static const Eigen::Matrix4f& projection() { return _camera->_projection; }
+    static const Eigen::Isometry3f& modelview() { return _camera->_modelview; }
 
-};
+    static GraphicsCamera* _camera;
+
+    void _makeCamera(verbosity::verbosity_level_t report_level);
+
+private:
+
+    GraphicsCamera(bool create, verbosity::verbosity_level_t report_level);
+
+}; // end GraphicsCamera class
+
+} // end akin namespace
 
 #endif // GRAPHICSCAMERA_H

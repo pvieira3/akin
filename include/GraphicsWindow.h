@@ -45,7 +45,6 @@ protected:
      * This includes pressing Shift, Ctrl or Alt key while pressing
      * the left mouse button.
      */
-    GraphicsCamera camera;
     GraphicsCamera::MouseMode mouseToCamera(int button);
     GraphicsCamera::MouseMode _mouseMode;
     

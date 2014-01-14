@@ -208,7 +208,7 @@ GraphicsBuffer::GraphicsBuffer(bool create, verbosity::verbosity_level_t report_
 
 void GraphicsBuffer::drawElements()
 {
-//    CheckGLError(_buffer->verb, "About to use gluLookAt");
+    CheckGLError(_buffer->verb, "About to draw elements");
 //    gluLookAt(0, 0, 5, 0, 0, 0, 0, 1, 0);
 //    CheckGLError(_buffer->verb, "Attempted to use gluLookAt");
     

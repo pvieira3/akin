@@ -117,7 +117,7 @@ void GraphicsWindow::_mouse(int button, int state, int x, int y)
 {
     if(GLUT_DOWN == state) {
         _mouseMode = mouseToCamera(button);
-        camera.mousePressed(x, y, _mouseMode);
+        GraphicsCamera::mousePressed(x, y, _mouseMode);
     }
     else {
         _mouseMode = GraphicsCamera::MOUSE_NONE;
@@ -127,7 +127,7 @@ void GraphicsWindow::_mouse(int button, int state, int x, int y)
 void GraphicsWindow::_motion(int x, int y)
 {
     if(GraphicsCamera::MOUSE_NONE != _mouseMode) {
-        camera.mouseMoved(x, y, _mouseMode);
+        GraphicsCamera::mouseMoved(x, y, _mouseMode);
     }
 }
 
@@ -199,6 +199,7 @@ void GraphicsWindow::makeInstance(int argc, char *argv[], std::string name, int 
         _Initialize(argc, argv, name, init_width, init_height);
 
         GraphicsBuffer instantiation(verb.level);
+//        GraphicsCamera camera_instantiation(verb.level);
         // ^ This makes sure that the graphics buffer has been properly created at start-up
     }
 }

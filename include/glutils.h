@@ -9,8 +9,8 @@
 namespace glutils
 {
 
-inline void loadMatrix(GLfloat* data) { glLoadMatrixf(data); }
-inline void multMatrix(GLfloat* matrix) { glMultMatrixf(matrix); }
+inline void loadMatrix(GLfloat* data) { /*glLoadMatrixf(data);*/ }
+inline void multMatrix(GLfloat* matrix) { /*glMultMatrixf(matrix);*/ }
 
 
 void mat4ToGl(const Eigen::Matrix4f& m, GLfloat* glMat);
