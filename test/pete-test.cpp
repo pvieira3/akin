@@ -12,15 +12,30 @@
 #include <LineCallback.h>
 #include <AkinCallback.h>
 
+// readInStl
+#include <osgDB/ReadFile>
+
+
 osgViewer::Viewer* createView(int x, int y, int w, int h, osg::Node* scene)
 {
-    osg::ref_ptr<osgViewer::Viewer> view = new osgViewer::Viewer;
-    view->setSceneData(scene);
-    view->setUpViewInWindow(x, y, w, h);
-    return view.release();
+    osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer;
+    viewer->setSceneData(scene);
+    viewer->setUpViewInWindow(x, y, w, h);
+
+    // Create camera with no inertia and add it to the viewer.
+    osgGA::OrbitManipulator* camera = new osgGA::TrackballManipulator();
+    camera->setAllowThrow(false);
+    viewer->setCameraManipulator(camera);
+    viewer->getCamera()->setClearColor(osg::Vec4(0.5, 0.5, 0.5, .5));
+    viewer->realize();
+
+    while( !viewer->done() )
+    {
+        viewer->frame();
+    }
 }
 
-int main()
+int callbackTest()
 {
     osg::Group* root = new osg::Group();
 
@@ -57,22 +72,30 @@ int main()
     // switch off lighting as we haven't assigned any normals.
     root->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
 
-    // Set up viewer in window
-    osgViewer::Viewer viewer;
-    viewer.setSceneData(root);
-    viewer.setUpViewInWindow(0, 0, 640, 480);
+    createView(0, 0, 640, 480, root);
 
-    // Create camera with no inertia and add it to the viewer.
-    osgGA::OrbitManipulator* camera = new osgGA::TrackballManipulator();
-    camera->setAllowThrow(false);
-    viewer.setCameraManipulator(camera);
-    viewer.getCamera()->setClearColor(osg::Vec4(0.5, 0.5, 0.5, .5));
-    viewer.realize();
+    return 0;
+}
 
-    while( !viewer.done() )
-    {
-        viewer.frame();
+int readInStl()
+{
+    osg::Group* root = new osg::Group();
+    osg::Node* stl = osgDB::readNodeFile("/home/pete/catkin_ws/src/hubo_gt/urdf/drchubo_v2/meshes/convhull_LAP.stl");
+    if(!stl) {
+        std::cerr << "Failed to load file" << std::endl;
+        exit(-1);
     }
 
+    root->addChild(stl);
+
+    createView(0, 0, 640, 480, root);
+    return 0;
+}
+
+
+int main(int argc, char** argv)
+{
+    //callbackTest();
+    readInStl();
     return 0;
 }
