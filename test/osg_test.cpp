@@ -213,8 +213,7 @@ void akin_test()
     
     Frame otherRoot(Transform(Translation(-1,0,0)), akin::Frame::World(), "otherRoot");
     Frame otherSecond(Transform(Translation(0,1,1)), otherRoot, "otherSecond");
-    Frame otherThird(Transform(Translation(-1,0,0)), otherSecond, "otherThird");
-    
+    Frame otherThird(Transform(Translation(-1,0,0)), otherSecond, "otherThird");    
 
     akinNode->addRootFrame(rootFrame);
     akinNode->addRootFrame(otherRoot);

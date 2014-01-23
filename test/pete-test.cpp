@@ -11,6 +11,7 @@
 #include <osg/ShapeDrawable>
 #include <LineCallback.h>
 #include <AkinCallback.h>
+#include "Picker.h"
 
 // readInStl
 #include <osgDB/ReadFile>
@@ -27,6 +28,7 @@ osgViewer::Viewer* createView(int x, int y, int w, int h, osg::Node* scene)
     camera->setAllowThrow(false);
     viewer->setCameraManipulator(camera);
     viewer->getCamera()->setClearColor(osg::Vec4(0.5, 0.5, 0.5, .5));
+    viewer->addEventHandler(new Picker);
     viewer->realize();
 
     while( !viewer->done() )
@@ -55,9 +57,9 @@ int callbackTest()
     osg::MatrixTransform* tf1 = new osg::MatrixTransform;
     osg::MatrixTransform* tf2 = new osg::MatrixTransform;
     tf1->setDataVariance(osg::Object::DYNAMIC);
-    tf1->setUpdateCallback(new LineCallback);
+//    tf1->setUpdateCallback(new LineCallback);
     tf2->setDataVariance(osg::Object::DYNAMIC);
-    tf2->setUpdateCallback(new LineCallback);
+//    tf2->setUpdateCallback(new LineCallback);
     osg::Matrix m;
     m.makeTranslate(0.6, 0, 0);
     tf1->setMatrix(m);
@@ -80,22 +82,43 @@ int callbackTest()
 int readInStl()
 {
     osg::Group* root = new osg::Group();
-    osg::Node* stl = osgDB::readNodeFile("/home/pete/catkin_ws/src/hubo_gt/urdf/drchubo_v2/meshes/convhull_LAP.stl");
-    if(!stl) {
-        std::cerr << "Failed to load file" << std::endl;
+    osg::MatrixTransform* rootTF = new osg::MatrixTransform;
+    osg::MatrixTransform* tf1 = new osg::MatrixTransform;
+    osg::MatrixTransform* tf2 = new osg::MatrixTransform;
+    tf1->setDataVariance(osg::Object::DYNAMIC);
+    tf2->setDataVariance(osg::Object::DYNAMIC);
+
+    rootTF->addChild(tf1);
+    rootTF->addChild(tf2);
+    osg::Matrix m;
+    m.makeTranslate(0.6, 0, 0);
+    tf2->setMatrix(m);
+    root->addChild(rootTF);
+
+
+    osg::Node* stl1 = osgDB::readNodeFile("/home/pete/catkin_ws/src/hubo_gt/urdf/drchubo_v2/meshes/convhull_LAP.stl");
+    if(!stl1) {
+        std::cerr << "Failed to load file stl1" << std::endl;
         exit(-1);
     }
 
-    root->addChild(stl);
+    osg::Node* stl2 = osgDB::readNodeFile("/home/pete/catkin_ws/src/hubo_gt/urdf/drchubo_v2/meshes/convhull_LKP.stl");
+    if(!stl2) {
+        std::cerr << "Failed to load file stl2" << std::endl;
+        exit(-1);
+    }
 
-    createView(0, 0, 640, 480, root);
+    tf1->addChild(stl1);
+    tf2->addChild(stl2);
+
+    createView(100, 0, 640, 480, root);
     return 0;
 }
 
 
 int main(int argc, char** argv)
 {
-    //callbackTest();
-    readInStl();
+    callbackTest();
+    //readInStl();
     return 0;
 }
