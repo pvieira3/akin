@@ -1,3 +1,46 @@
+/*
+ * Copyright (c) 2014, Georgia Tech Research Corporation
+ * All rights reserved.
+ *
+ * Author: Michael X. Grey <mxgrey@gatech.edu>
+ * Date: Jan 2014
+ *
+ * Humanoid Robotics Lab      Georgia Institute of Technology
+ * Director: Mike Stilman     http://www.golems.org
+ *
+ *
+ * This file is provided under the following "BSD-style" License:
+ *   Redistribution and use in source and binary forms, with or
+ *   without modification, are permitted provided that the following
+ *   conditions are met:
+ *
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *
+ *   * Neither the name of the Humanoid Robotics Lab nor the names of
+ *     its contributors may be used to endorse or promote products
+ *     derived from this software without specific prior written
+ *     permission
+ *
+ *   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+ *   CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ *   INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ *   MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ *   DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+ *   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ *   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ *   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ *   USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+ *   AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *   POSSIBILITY OF SUCH DAMAGE.
+ */
 
 #include <osg/Geode>
 #include <osg/Geometry>
@@ -7,7 +50,10 @@
 #include <osg/LineWidth>
 
 #include "AkinCallback.h"
+#include "Axes.h"
 
+using namespace std;
+using namespace akin;
 
 void pyramid_test()
 {
@@ -102,8 +148,13 @@ void line_test()
     lineVerts->push_back(osg::Vec3(1,0,2));
     lineGeom->setVertexArray(lineVerts);
 
-    lineGeode->setUserData(lineVerts);
     lineGeom->setDataVariance(osg::Object::DYNAMIC);
+    
+    osgAkin::SpinData* spinData = new osgAkin::SpinData;
+    spinData->lineVerts = lineVerts;
+    spinData->geom = lineGeom;
+    lineGeode->setUserData(spinData);
+    lineGeode->setUpdateCallback(new osgAkin::SpinCallback);
 
 
     osg::Vec4Array* color = new osg::Vec4Array;
@@ -126,6 +177,7 @@ void line_test()
 
     greenGeom->addPrimitiveSet(lineElem);
 
+
     osg::Vec4Array* green = new osg::Vec4Array;
     green->push_back(osg::Vec4(0.0f, 1.0f, 0.0f, 1.0f));
 
@@ -134,12 +186,9 @@ void line_test()
 
 
     osg::LineWidth* linewidth = new osg::LineWidth;
-    linewidth->setWidth(5.0f);
+    linewidth->setWidth(2.0f);
     lineGeode->getOrCreateStateSet()->setAttributeAndModes(linewidth);
     lineGeode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-
-
-    lineGeode->setUpdateCallback(new osgAkin::SpinCallback);
     
     osgViewer::Viewer viewer;
     viewer.setSceneData(root);
@@ -147,11 +196,46 @@ void line_test()
 }
 
 
+void akin_test()
+{
+    osg::Group* root = new osg::Group;
+    osgAkin::AkinNode* akinNode = new osgAkin::AkinNode;
+    root->addChild(akinNode);
+
+//    Frame rootFrame(Transform::Identity(), akin::Frame::World(), "testFrame");
+    Frame rootFrame(Transform(Translation(1,0,0)), akin::Frame::World(), "testFrame");
+    Frame secondFrame(Transform(Translation(1,0,1)), rootFrame, "secondFrame");
+    Frame thirdFrame(Transform(Translation(0,0,1)), secondFrame, "thirdFrame");
+    Frame fourthFrame(Transform(Translation(0, 1, 0.5)), thirdFrame, "thirdFrame");
+
+    Frame newBranch(Transform(Translation(-1,0,0)), secondFrame, "newBranch");
+    Frame more(Transform(Translation(0.1, 0.5, -0.3)), newBranch, "more");
+    
+    Frame otherRoot(Transform(Translation(-1,0,0)), akin::Frame::World(), "otherRoot");
+    Frame otherSecond(Transform(Translation(0,1,1)), otherRoot, "otherSecond");
+    Frame otherThird(Transform(Translation(-1,0,0)), otherSecond, "otherThird");
+    
+
+    akinNode->addRootFrame(rootFrame);
+    akinNode->addRootFrame(otherRoot);
+    
+    akinNode->addDrawable(new osgAkin::Axes(0.1));
+    
+    
+    osgViewer::Viewer viewer;
+    viewer.getCamera()->setClearColor(osg::Vec4(0.3f,0.3f,0.3f,1.0f));
+    viewer.setSceneData(root);
+    viewer.run();
+    
+}
+
+
 
 int main(int argc, char* argv[])
 {
-    line_test();
+//    line_test();
 //    pyramid_test();
+    akin_test();
     
     return 0;
 }
