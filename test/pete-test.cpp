@@ -9,6 +9,7 @@
 #include <osgGA/TrackballManipulator>
 #include <osg/MatrixTransform>
 #include <osg/ShapeDrawable>
+#include <osgViewer/CompositeViewer>
 #include <LineCallback.h>
 #include <AkinCallback.h>
 #include "Picker.h"
@@ -17,7 +18,7 @@
 #include <osgDB/ReadFile>
 
 
-osgViewer::Viewer* createView(int x, int y, int w, int h, osg::Node* scene)
+osgViewer::Viewer* createViewer(int x, int y, int w, int h, osg::Node* scene)
 {
     osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer;
     viewer->setSceneData(scene);
@@ -35,6 +36,18 @@ osgViewer::Viewer* createView(int x, int y, int w, int h, osg::Node* scene)
     {
         viewer->frame();
     }
+}
+
+osgViewer::View* createView(int x, int y, int w, int h, osg::Node* scene)
+{
+    osgViewer::View* view = new osgViewer::View;
+    osgGA::OrbitManipulator* cameraManipulator = new osgGA::OrbitManipulator();
+    cameraManipulator->setAllowThrow(false);
+    view->setCameraManipulator(cameraManipulator);
+    view->getCamera()->setClearColor(osg::Vec4(0.5, 0.5, 0.5, 0.5));
+    view->setUpViewInWindow(x, y, w, h);
+    view->setSceneData(scene);
+    return view;
 }
 
 int callbackTest()
@@ -82,18 +95,21 @@ int callbackTest()
 int readInStl()
 {
     osg::Group* root = new osg::Group();
+    osg::Group* root2 = new osg::Group();
     osg::MatrixTransform* rootTF = new osg::MatrixTransform;
+    osg::MatrixTransform* rootTF2 = new osg::MatrixTransform;
     osg::MatrixTransform* tf1 = new osg::MatrixTransform;
     osg::MatrixTransform* tf2 = new osg::MatrixTransform;
     tf1->setDataVariance(osg::Object::DYNAMIC);
     tf2->setDataVariance(osg::Object::DYNAMIC);
 
     rootTF->addChild(tf1);
-    rootTF->addChild(tf2);
+    rootTF2->addChild(tf2);
     osg::Matrix m;
     m.makeTranslate(0.6, 0, 0);
     tf2->setMatrix(m);
     root->addChild(rootTF);
+    root2->addChild(rootTF2);
 
 
     osg::Node* stl1 = osgDB::readNodeFile("/home/pete/catkin_ws/src/hubo_gt/urdf/drchubo_v2/meshes/convhull_LAP.stl");
@@ -111,14 +127,19 @@ int readInStl()
     tf1->addChild(stl1);
     tf2->addChild(stl2);
 
-    createView(100, 0, 640, 480, root);
+
+
+    osgViewer::CompositeViewer* mainViewer = new osgViewer::CompositeViewer();
+    mainViewer->addView(createView(100, 0, 640, 480, root));
+    mainViewer->addView(createView(0, 0, 50, 50, root2));
+    mainViewer->run();
     return 0;
 }
 
 
 int main(int argc, char** argv)
 {
-    callbackTest();
-    //readInStl();
+    //callbackTest();
+    readInStl();
     return 0;
 }

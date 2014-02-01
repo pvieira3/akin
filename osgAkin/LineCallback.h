@@ -3,7 +3,6 @@
 
 #include <osg/Node>
 #include <osg/NodeCallback>
-#include "ObjectManipDataType.h"
 #include <osg/MatrixTransform>
 #include <iostream>
 #include <osg/io_utils>
